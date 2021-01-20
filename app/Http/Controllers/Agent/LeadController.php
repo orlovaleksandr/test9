@@ -3,7 +3,12 @@
 namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\AgentController;
+use App\Models\SphereAttrOptions;
 use App\Models\SphereMask;
+use App\Models\User;
+use Cartalyst\Sentinel\Sentinel;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 use Validator;
 use App\Models\Agent;
 use App\Models\Salesman;
@@ -24,8 +29,35 @@ class LeadController extends AgentController {
     */
     public function index()
     {
-        // Show the page
-        return view('agent.lead.index');
+        $open_leads  = $this->user->openLeads()->get()->pluck('lead_id')->toArray();
+        $leads = Lead::whereIn('id', $open_leads)->with('phone')->with('sphereInfo')->get()->toArray();
+
+
+        return view('agent.lead.index')->with('leads', $leads);
+    }
+
+    public function getRowData($id, $lead_id)
+    {
+        $sphereAttrIds = Sphere::findOrFail($id)->attributes()->get()->pluck('id')->toArray();
+        $sphereAttr = Sphere::findOrFail($id)->attributes()->get()->toArray();
+        $sphereAttrIdsOp = SphereAttrOptions::whereIn('sphere_attr_id', $sphereAttrIds)->where('ctype', 'agent')->get()->toArray();
+        $sphereBitmask = DB::table('sphere_bitmask_' . $id)->where('type', 'lead')->where('user_id', $lead_id)->first();
+        $sphereBitmask = json_decode(json_encode($sphereBitmask),true);
+
+        $res = [];
+
+        foreach ($sphereAttr as $attr) {
+            $res[$attr['_type']] = [];
+
+            foreach ($sphereAttrIdsOp as $sphAttOpt) {
+                if ($sphAttOpt['sphere_attr_id'] == $attr['id'] && $sphereBitmask['fb_' . $attr['id'] . '_' . $sphAttOpt['id']] == 1) {
+                    $res[$attr['_type']][] = $sphAttOpt['value'];
+                }
+            }
+
+        }
+
+        return response()->json($res);
     }
 
     public function deposited(){

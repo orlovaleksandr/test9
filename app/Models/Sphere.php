@@ -42,4 +42,15 @@ class Sphere extends Model
             $group->leadAttr()->delete();
         });
     }
+
+    public function sphereAttrOpt()
+    {
+        return $this->hasManyThrough(
+            '\App\Models\SphereAttrOptions', '\App\Models\SphereAttr',
+            'sphere_id', 'sphere_attr_id', 'id'
+        );
+
+        //для версии 5.1:
+        //return $this->hasManyThrough('App\Post', 'App\User', 'country_id', 'user_id');
+    }
 }

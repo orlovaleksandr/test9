@@ -61,4 +61,8 @@ class Agent extends EloquentUser implements AuthenticatableContract, CanResetPas
     public function bill(){
         return $this->hasOne('\App\Models\Credits','agent_id','id');
     }
+
+    public function openLeads(){
+        return $this->hasMany('\App\Models\OpenLeads','agent_id','id');
+    }
 }

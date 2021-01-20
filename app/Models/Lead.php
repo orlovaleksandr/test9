@@ -50,4 +50,8 @@ class Lead extends EloquentUser {
         $relation=$this->belongsToMany('App\Models\Agent','open_leads','lead_id','agent_id');
         return ($agent_id)? $relation->where('agent_id','=',$agent_id) : $relation;
     }
+
+    public function sphereInfo(){
+        return $this->hasMany('App\Models\SphereAttr','sphere_id', 'sphere_id');
+    }
 }
